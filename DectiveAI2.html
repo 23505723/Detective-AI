@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Scene Event Logger</title>
+    <style>
+        #addCriminalForm h2{
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 20px;
+        }
+        body { font-family: Arial, sans-serif; }
+        form { margin-bottom: 20px; }
+        label { display: block; margin-top: 10px; }
+        input { margin-bottom: 10px; }
+        .container { margin: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Crime Scene Event Logger</h1>
+
+        <form id="addCriminalForm">
+            <h2>Add Criminal</h2>
+            <label>Name: <input type="text" id="criminalName" required></label>
+            <label>Known Crimes (comma-separated): <input type="text" id="criminalKnownFor" required></label>
+            <label>Fingerprint ID: <input type="text" id="criminalFingerprint" required></label>
+            <label>DNA Sequence: <input type="text" id="criminalDNA" required></label>
+            <button type="button" onclick="addCriminal()">Add Criminal</button>
+        </form>
+
+        <form id="addCrimeSceneForm">
+            <h2>Add Crime Scene</h2>
+            <label>Case Name: <input type="text" id="caseName" required></label>
+            <label>Fingerprint ID: <input type="text" id="caseFingerprint" required></label>
+            <label>DNA Sequence: <input type="text" id="caseDNA" required></label>
+            <label>Object Used: <input type="text" id="objectUsed" required></label>
+            <label>Estimated Crime Time: <input type="text" id="crimeTime" required></label>
+            <label>Location: <input type="text" id="crimeLocation" required></label>
+            <button type="button" onclick="addCrimeScene()">Add Crime Scene</button>
+        </form>
+
+        <form id="addEventForm">
+            <h2>Add Event/Observation</h2>
+            <label>Event/Observation: <input type="text" id="eventObservation" required></label>
+            <button type="button" onclick="addEvent()">Add Event</button>
+        </form>
+
+        <form id="searchForm">
+            <h2>Search Crime Scene</h2>
+            <label>Enter Case Name: <input type="text" id="searchCaseName" required></label>
+            <button type="button" onclick="searchCrimeScene()">Search</button>
+        </form>
+
+        <button onclick="viewCriminals()">View Criminals</button>
+        <button onclick="viewCrimeScenes()">View Crime Scenes</button>
+        <button onclick="viewEvents()">View Events</button>
+        <button onclick="estimateOutcome()">Estimate What Happened</button>
+        <button onclick="analyzeCrimeScene()">Analyze Crime Scene</button>
+
+        <div id="output"></div>
+    </div>
+
+    <script>
+        const criminalsDatabase = [];
+        const crimeScenes = [];
+        const events = [];
+
+        function addCriminal() {
+            const name = document.getElementById('criminalName').value;
+            const knownFor = document.getElementById('criminalKnownFor').value.split(',');
+            const fingerprint = document.getElementById('criminalFingerprint').value;
+            const DNA = document.getElementById('criminalDNA').value;
+
+            const criminal = { name, knownFor, fingerprint, DNA };
+            criminalsDatabase.push(criminal);
+            alert(`Criminal ${name} added.`);
+            document.getElementById('addCriminalForm').reset();
+        }
+
+        function addCrimeScene() {
+            const caseName = document.getElementById('caseName').value;
+            const fingerprint = document.getElementById('caseFingerprint').value;
+            const DNA = document.getElementById('caseDNA').value;
+            const objectUsed = document.getElementById('objectUsed').value;
+            const time = document.getElementById('crimeTime').value;
+            const location = document.getElementById('crimeLocation').value;
+
+            const crimeScene = { caseName, fingerprint, DNA, objectUsed, time, location };
+            crimeScenes.push(crimeScene);
+            alert(`Crime scene ${caseName} added.`);
+            document.getElementById('addCrimeSceneForm').reset();
+        }
+
+        function addEvent() {
+            const event = document.getElementById('eventObservation').value;
+            events.push(event);
+            alert('Event/Observation added.');
+            document.getElementById('addEventForm').reset();
+        }
+
+        function viewCriminals() {
+            const output = criminalsDatabase.map(c => 
+                `Name: ${c.name}, Known for: ${c.knownFor.join(', ')}, Fingerprint: ${c.fingerprint}, DNA: ${c.DNA}`
+            ).join('<br>');
+            document.getElementById('output').innerHTML = `<h2>Criminals Database</h2><div>${output || 'No criminals in the database.'}</div>`;
+        }
+
+        function viewCrimeScenes() {
+            const output = crimeScenes.map(c => 
+                `Case Name: ${c.caseName}, Fingerprint: ${c.fingerprint}, DNA: ${c.DNA}, Object: ${c.objectUsed}, Time: ${c.time}, Location: ${c.location}`
+            ).join('<br>');
+            document.getElementById('output').innerHTML = `<h2>Crime Scenes</h2><div>${output || 'No crime scenes recorded.'}</div>`;
+        }
+
+        function viewEvents() {
+            const output = events.join('<br>');
+            document.getElementById('output').innerHTML = `<h2>Events/Observations</h2><div>${output || 'No events/observations recorded yet.'}</div>`;
+        }
+
+        function estimateOutcome() {
+            if (events.length === 0) {
+                document.getElementById('output').innerHTML = '<h2>Error</h2><p>No events/observations recorded to make an estimation.</p>';
+                return;
+            }
+
+            let estimation = 'Based on the observations, it\'s possible that:<br>';
+            if (events.some(event => /broken|bruises|missing|shattered|forceful entry/.test(event.toLowerCase()))) {
+                estimation += '- There was a struggle or forceful entry.<br>';
+            }
+            if (events.some(event => /missing|taken|stolen/.test(event.toLowerCase()))) {
+                estimation += '- Items were stolen or taken.<br>';
+            }
+            if (events.some(event => /blood|injured|wounded/.test(event.toLowerCase()))) {
+                estimation += '- Someone may have been injured.<br>';
+            }
+            if (events.some(event => /weapon|gun|knife/.test(event.toLowerCase()))) {
+                estimation += '- A weapon was involved.<br>';
+            }
+
+            if (estimation === 'Based on the observations, it\'s possible that:<br>') {
+                estimation += '- There is insufficient information to make an accurate estimation.';
+            }
+
+            document.getElementById('output').innerHTML = `<h2>Estimation</h2><div>${estimation}</div>`;
+        }
+
+        function analyzeCrimeScene() {
+            if (crimeScenes.length === 0) {
+                document.getElementById('output').innerHTML = '<h2>Error</h2><p>No crime scenes to analyze.</p>';
+                return;
+            }
+
+            const results = crimeScenes.map(evidence => {
+                const suspects = identifySuspects(evidence);
+                const reconstructedEvent = reconstructEvents(evidence);
+                const relatedCases = findRelatedCases(evidence);
+
+                return `<h2>Case Name: ${evidence.caseName}</h2>
+                        <p>Possible Suspects: ${suspects.length > 0 ? suspects.join(', ') : 'None'}</p>
+                        <p>Reconstructed Event: ${reconstructedEvent}</p>
+                        <p>Related Old Cases: ${relatedCases.map(c => `${c.case_id}: ${c.details}`).join(', ')}</p>`;
+            }).join('<br>');
+
+            document.getElementById('output').innerHTML = results;
+        }
+
+        function searchCrimeScene() {
+            const searchCaseName = document.getElementById('searchCaseName').value;
+            const crimeScene = crimeScenes.find(c => c.caseName === searchCaseName);
+            if (crimeScene) {
+                const suspects = identifySuspects(crimeScene);
+                const reconstructedEvent = reconstructEvents(crimeScene);
+                const relatedCases = findRelatedCases(crimeScene);
+
+                document.getElementById('output').innerHTML = `
+                    <h2>Case Name: ${crimeScene.caseName}</h2>
+                    <p>Fingerprint ID: ${crimeScene.fingerprint}</p>
+                    <p>DNA Sequence: ${crimeScene.DNA}</p>
+                    <p>Object Used: ${crimeScene.objectUsed}</p>
+                    <p>Estimated Crime Time: ${crimeScene.time}</p>
+                    <p>Location: ${crimeScene.location}</p>
+                    <p>Possible Suspects: ${suspects.length > 0 ? suspects.join(', ') : 'None'}</p>
+                    <p>Reconstructed Event: ${reconstructedEvent}</p>
+                    <p>Related Old Cases: ${relatedCases.map(c => `${c.case_id}: ${c.details}`).join(', ')}</p>`;
+            } else {
+                document.getElementById('output').innerHTML = '<h2>Search Result</h2><p>No crime scene found with that name.</p>';
+            }
+        }
+
+        function identifySuspects(evidence) {
+            return criminalsDatabase.filter(c => c.fingerprint === evidence.fingerprint || c.DNA === evidence.DNA)
+                                    .map(c => c.name);
+        }
+
+        function reconstructEvents(evidence) {
+            const events = [
+                'The suspect broke into the house through a window.',
+                'A struggle occurred in the living room.',
+                'The suspect fled the scene after taking valuables.'
+            ];
+            return events[Math.floor(Math.random() * events.length)];
+        }
+
+        function findRelatedCases(evidence) {
+            return [
+                { case_id: 101, details: 'Similar burglary method used.' },
+                { case_id: 202, details: 'Matching DNA found in a previous theft case.' }
+            ];
+        }
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Scene Event Logger</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        form { margin-bottom: 20px; }
+        label { display: block; margin-top: 10px; }
+        input { margin-bottom: 10px; }
+        .container { margin: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Crime Scene Event Logger</h1>
+
+        <!-- Existing forms omitted for brevity -->
+
+        <form id="uploadImageForm">
+            <h2>Upload Crime Scene Image</h2>
+            <label>Case Name: <input type="text" id="uploadCaseName" required></label>
+            <label>Upload Image: <input type="file" id="crimeSceneImage" accept="image/*" required></label>
+            <button type="button" onclick="uploadImage()">Upload Image</button>
+        </form>
+
+        <div id="uploadedImages"></div>
+
+        <button onclick="estimateOutcome()">Estimate What Happened</button>
+        
+        <div id="output"></div>
+    </div>
+
+    <script>
+        const criminalsDatabase = [];
+        const crimeScenes = [];
+        const events = [];
+        const images = [];  // Array to store uploaded images
+
+        function uploadImage() {
+            const caseName = document.getElementById('uploadCaseName').value;
+            const imageFile = document.getElementById('crimeSceneImage').files[0];
+            
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    images.push({ caseName, filename: imageFile.name, content: e.target.result });
+                    alert('Image uploaded successfully.');
+                    displayUploadedImages();
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                alert('Please select an image.');
+            }
+            document.getElementById('uploadImageForm').reset();
+        }
+
+        function displayUploadedImages() {
+            const output = images.map(img => 
+                `<div>Case: ${img.caseName}, Image: ${img.filename}</div>`
+            ).join('<br>');
+            document.getElementById('uploadedImages').innerHTML = `<h2>Uploaded Images</h2><div>${output || 'No images uploaded yet.'}</div>`;
+        }
+
+        function estimateOutcome() {
+            if (events.length === 0 && images.length === 0) {
+                document.getElementById('output').innerHTML = '<h2>Error</h2><p>No events/observations or images recorded to make an estimation.</p>';
+                return;
+            }
+
+            let estimation = 'Based on the observations, it\'s possible that:<br>';
+            
+            // Existing logic for text-based events
+            if (events.some(event => /broken|bruises|missing|shattered|forceful entry/.test(event.toLowerCase()))) {
+                estimation += '- There was a struggle or forceful entry.<br>';
+            }
+            if (events.some(event => /missing|taken|stolen/.test(event.toLowerCase()))) {
+                estimation += '- Items were stolen or taken.<br>';
+            }
+            if (events.some(event => /blood|injured|wounded/.test(event.toLowerCase()))) {
+                estimation += '- Someone may have been injured.<br>';
+            }
+            if (events.some(event => /weapon|gun|knife/.test(event.toLowerCase()))) {
+                estimation += '- A weapon was involved.<br>';
+            }
+
+            // Simulated image analysis logic
+            images.forEach(img => {
+                const lowerFilename = img.filename.toLowerCase();
+                if (lowerFilename.includes('blood')) {
+                    estimation += '- Blood was found at the scene, indicating possible injury or death.<br>';
+                }
+                if (lowerFilename.includes('gun')) {
+                    estimation += '- A gun was found, indicating possible gunfire.<br>';
+                }
+                if (lowerFilename.includes('dead_body')) {
+                    estimation += '- A dead body was found, indicating a fatality.<br>';
+                }
+                if (lowerFilename.includes('broken_window')) {
+                    estimation += '- A broken window was found, indicating a possible break-in.<br>';
+                }
+            });
+
+            if (estimation === 'Based on the observations, it\'s possible that:<br>') {
+                estimation += '- There is insufficient information to make an accurate estimation.';
+            }
+
+            document.getElementById('output').innerHTML = `<h2>Estimation</h2><div>${estimation}</div>`;
+        }
+    </script>
+</body>
+</html>
